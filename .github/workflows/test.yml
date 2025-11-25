@@ -12,7 +12,7 @@ jobs:
     
     services:
       postgres:
-        image: postgres:15-alpine  # Use specific version for reproducibility
+        image: postgres:15-alpine
         env:
           POSTGRES_USER: user
           POSTGRES_PASSWORD: password
@@ -26,7 +26,7 @@ jobs:
           --health-retries 5
       
       redis:
-        image: redis:7-alpine  # Add Redis for token blacklisting tests
+        image: redis:7-alpine
         ports:
           - 6379:6379
         options: >-
@@ -42,7 +42,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.12'  # Match your development version
+          python-version: '3.12'
           
       - name: Cache pip dependencies
         uses: actions/cache@v4
@@ -55,7 +55,7 @@ jobs:
       - name: Install system dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y postgresql-client
+          sudo apt-get install -y postgresql-client redis-tools
       
       - name: Install Python dependencies
         run: |
@@ -83,7 +83,7 @@ jobs:
       - name: Run linting
         run: |
           pip install ruff
-          ruff check . || true  # Don't fail on lint errors for now
+          ruff check . || true
       
       - name: Run unit tests with coverage
         env:
@@ -137,7 +137,7 @@ jobs:
           flags: unittests
           name: codecov-umbrella
           fail_ci_if_error: false
-          token: ${{ secrets.CODECOV_TOKEN }}  # Optional for public repos
+          token: ${{ secrets.CODECOV_TOKEN }}
       
       - name: Upload test results
         uses: actions/upload-artifact@v4
@@ -157,7 +157,7 @@ jobs:
       
       - name: Check coverage threshold
         run: |
-          coverage report --fail-under=70  # Fail if coverage is below 70%
+          coverage report --fail-under=70
 
   security:
     needs: test
@@ -186,7 +186,7 @@ jobs:
           format: 'sarif'
           output: 'trivy-results.sarif'
           severity: 'CRITICAL,HIGH'
-          exit-code: '0'  # Don't fail the build, just report
+          exit-code: '0'
       
       - name: Upload Trivy results to GitHub Security tab
         uses: github/codeql-action/upload-sarif@v3
@@ -200,7 +200,7 @@ jobs:
           image-ref: 'app:test'
           format: 'table'
           severity: 'CRITICAL,HIGH'
-          exit-code: '0'  # Fail on critical vulnerabilities
+          exit-code: '0'
           ignore-unfixed: true
       
       - name: Run Bandit security linter
@@ -278,10 +278,8 @@ jobs:
         if: success()
         run: |
           echo "✅ Deployment successful!"
-          # Add Slack/Discord notification here if needed
       
       - name: Notify on failure
         if: failure()
         run: |
           echo "❌ Deployment failed!"
-          # Add Slack/Discord notification here if needed
